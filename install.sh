@@ -29,13 +29,52 @@ warn() { printf '  \033[33m!\033[0m %s\n' "$*"; }
 die() { printf '  \033[31m✘\033[0m %s\n' "$*"; exit 1; }
 
 # ---------- 定位 ----------
-[ -d "$HOME_DIR" ] || die "找不到 $HOME_DIR，DSH 至少启动过一次"
+# 裸机：DSH_HOME 不存在时创建（DSH 首次启动会自己补全其余结构）
+if [ ! -d "$HOME_DIR" ]; then
+  if [ "$MODE" = "check" ]; then
+    warn "$HOME_DIR 不存在（裸机）。--check 不创建任何文件"
+  elif [ "$MODE" = "dry" ]; then
+    echo "  将创建 $HOME_DIR"
+  else
+    c "裸机：创建 $HOME_DIR"
+    mkdir -p "$HOME_DIR/profiles"
+    ok "$HOME_DIR"
+  fi
+fi
 
 PROFILE=""
 for p in web desktop; do
   if [ -d "$HOME_DIR/profiles/$p" ]; then PROFILE="$p"; break; fi
 done
-[ -n "$PROFILE" ] || die "找不到 profile（web / desktop 都没有）"
+
+# 裸机：profile 不存在时让 dsh 自己初始化
+if [ -z "$PROFILE" ]; then
+  if [ "$MODE" = "check" ]; then
+    warn "未找到 profile（裸机）。--check 不修改，跳过 profile 初始化"
+    PROFILE="web"
+  elif [ "$MODE" = "dry" ]; then
+    echo "  将初始化 profile: web（dsh plugin --profile web list）"
+    PROFILE="web"
+  else
+    c "裸机：初始化 profile"
+    if command -v dsh >/dev/null 2>&1; then
+      DSH_BIN="dsh"
+    elif [ -f "/opt/dsh/node_modules/@deepseek-ai/dsh/lib/bin.js" ]; then
+      DSH_BIN="node /opt/dsh/node_modules/@deepseek-ai/dsh/lib/bin.js"
+    else
+      die "找不到 dsh 命令，也没找到 /opt/dsh 下的宿主"
+    fi
+    mkdir -p "$HOME_DIR/profiles"
+    if $DSH_BIN plugin --profile web list >/dev/null 2>&1 || [ -d "$HOME_DIR/profiles/web" ]; then
+      ok "profile web 已初始化"
+      PROFILE="web"
+    else
+      die "profile 初始化失败，请先手动启动一次 DSH: dsh web"
+    fi
+  fi
+fi
+[ -n "$PROFILE" ] || die "无法确定 profile"
+[ -d "$HOME_DIR/profiles/$PROFILE" ] || mkdir -p "$HOME_DIR/profiles/$PROFILE"
 
 COMM="$HOME_DIR/profiles/$PROFILE/node_modules/dsh-purge-community"
 PROFILE_PKG="$HOME_DIR/profiles/$PROFILE/package.json"
