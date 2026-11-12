@@ -138,10 +138,39 @@ bash install.sh --patch-only
 
 本套件的 9 处注入都在社区版 `lib/` 里，**没有社区版就只有富江能用**。
 
+> ⚠️ **`dsh-purge-community` 没有发布到 npm registry。**
+> `dsh plugin add dsh-purge-community` 一定返回 `ERR_PNPM_FETCH_404`。
+> 它只能从 GitHub Release 拿 tgz。
+
+用套件自带的脚本装（推荐）：
+
 ```bash
-dsh plugin --profile web add dsh-purge-community
-# 或
-cd ~/.dsh/profiles/web && npm i dsh-purge-community
+bash install-community.sh             # 自动取最新 release
+bash install-community.sh v1.6.93     # 指定版本
+bash install-community.sh --local /path/to.tgz   # 离线
+```
+
+或者手动：
+
+```bash
+V=v1.6.93
+curl -L -o /tmp/comm.tgz \
+  "https://github.com/kingcharleslzy-ai/dsh-purge/releases/download/$V/dsh-purge-community-${V#v}.tgz"
+
+D="$HOME/.dsh/profiles/web/node_modules/dsh-purge-community"
+mkdir -p "$D"
+tar -xzf /tmp/comm.tgz -C "$D" --strip-components=1
+
+cd ~/.dsh/profiles/web
+pnpm add "dsh-purge-community@file:./node_modules/dsh-purge-community"
+```
+
+**验证**：
+
+```bash
+ls ~/.dsh/profiles/web/node_modules/dsh-purge-community/lib/index.js
+cd ~/.dsh/profiles/web/node_modules/dsh-purge-community
+node bin/community.js status | head -5   # 应显示 level: qualified
 ```
 
 装完确认：
@@ -322,6 +351,7 @@ rm -f ladder.js reinforce.js assemble.js
 
 ```
 armor-kit/
+├── install-community.sh      安装社区版（npm 上没有，必须走 tgz）
 ├── install.sh                一键安装 / 修复 / 检查
 ├── patch/apply.mjs           幂等补丁器（9 处注入）
 ├── fujiang-armor/            富江插件

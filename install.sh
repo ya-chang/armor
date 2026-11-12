@@ -63,10 +63,10 @@ fi
 c "[1/6] 检查社区版"
 if [ ! -f "$COMM/lib/index.js" ]; then
   if [ "$MODE" = "patch" ]; then
-    die "未安装社区版，无法打补丁。先执行: dsh plugin --profile web add dsh-purge-community"
+    die "未安装社区版，无法打补丁。先执行: bash install-community.sh"
   fi
   warn "未安装社区版，跳过所有依赖它的功能"
-  warn "装法: dsh plugin --profile web add dsh-purge-community"
+  warn "装法: bash install-community.sh（注意 npm 上没有这个包，dsh plugin add 会 404）"
   HAS_COMM=0
 else
   ok "社区版存在: $COMM"
