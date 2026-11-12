@@ -17,6 +17,49 @@
 5) 提示词载体  fujiang-kernel.md / mirror / prompt-inject.md / tuning.json
 ```
 
+## 三步装法（推荐）
+
+只走三条命令，第 4、5 层藏在第三条里：
+
+```bash
+# ① 社区版（npm 上没有，必须走 tgz）
+curl -L -o /tmp/comm.tgz \
+  "https://github.com/kingcharleslzy-ai/dsh-purge/releases/download/v1.6.93/dsh-purge-community-1.6.93.tgz"
+D="$HOME/.dsh/profiles/web/node_modules/dsh-purge-community"
+mkdir -p "$D" && tar -xzf /tmp/comm.tgz -C "$D" --strip-components=1
+
+cd ~/.dsh/profiles/web
+python3 - <<'PY'
+import json, pathlib
+p = pathlib.Path("package.json"); d = json.loads(p.read_text())
+d["dependencies"]["dsh-purge-community"] = "file:./node_modules/dsh-purge-community"
+p.write_text(json.dumps(d, indent=2, ensure_ascii=False) + "\n")
+PY
+pnpm install
+
+# ② 富江插件
+git clone https://github.com/ya-chang/armor-kit.git ~/armor-kit
+mkdir -p ~/.dsh/plugins/fujiang-armor
+cp -a ~/armor-kit/fujiang-armor/. ~/.dsh/plugins/fujiang-armor/
+
+# ③ 仓库补丁层：自动带上第 4 层（自愈模板源）+ 第 5 层（提示词载体）+ 9 处注入
+cd ~/armor-kit && bash patch/install.sh
+
+# 完全退出 DSH 再打开（不是杀进程）
+```
+
+体检：
+
+```bash
+bash patch/install.sh --check    # 期望：合计 9 项：通过 9，失败 0
+```
+
+## 一条命令装法（等价）
+
+```bash
+cd ~/armor-kit && bash install.sh   # 5 步一次跑完：社区版检查→富江→模板源→载体→注入
+```
+
 ## 安装
 
 ```bash
@@ -54,6 +97,7 @@ cd /path/to/armor-kit && bash install.sh
 
 ```
 patch/apply.mjs                 幂等补丁器（9 处注入）
+patch/install.sh                第三条命令：补第 4、5 层 + 注入
 purge-opt/lib/ladder.js         L0-L3 阶梯
 purge-opt/lib/reinforce.js      按步落锁 + 形态锁
 purge-opt/lib/assemble.js       接管 system-prompt 装配
