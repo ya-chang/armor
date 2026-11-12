@@ -53,11 +53,36 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 TGZ=""
 
+# 自动发现本地已有的 tgz（离线 / 网络不通时救命）
+find_local_tgz() {
+  local c
+  for c in \
+    "$HOME_DIR/dsh-purge-community/pkgs"/*/*.tgz \
+    "$HOME_DIR"/armor-kit/*.tgz \
+    "$KIT_DIR"/*.tgz \
+    /tmp/dsh-purge-community*.tgz; do
+    [ -f "$c" ] && { echo "$c"; return 0; }
+  done
+  return 1
+}
+KIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 if [ -n "$LOCAL_TGZ" ]; then
   [ -f "$LOCAL_TGZ" ] || die "本地文件不存在: $LOCAL_TGZ"
   TGZ="$LOCAL_TGZ"
   ok "使用本地包: $TGZ"
 else
+  if FOUND=$(find_local_tgz); then
+    warn "发现本地已有 tgz，直接使用（跳过下载）"
+    ok "$FOUND"
+    TGZ="$FOUND"
+    VERSION=$(tar -xzOf "$FOUND" package/package.json 2>/dev/null \
+      | python3 -c "import json,sys;print('v'+json.load(sys.stdin).get('version',''))" 2>/dev/null || echo "")
+    [ -n "$VERSION" ] && ok "版本: $VERSION"
+  fi
+fi
+
+if [ -z "$TGZ" ]; then
   if [ -z "$VERSION" ]; then
     c "查询最新版本"
     for i in 1 2 3; do

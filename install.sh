@@ -48,7 +48,11 @@ ok "node $(node -v 2>/dev/null || echo 缺失)"
 if [ "$MODE" = "dry" ]; then
   echo
   c "计划（dry-run 不执行）"
-  echo "  1. 检查社区版 → $COMM"
+  if [ -f "$COMM/lib/index.js" ]; then
+    echo "  1. 社区版已安装 → $COMM"
+  else
+    echo "  1. 社区版缺失 → 自动执行 install-community.sh（GitHub Release tgz）"
+  fi
   echo "  2. 若依赖是 tgz 引用，改为目录引用并 pnpm install"
   echo "  3. 安装富江插件 → $HOME_DIR/plugins/fujiang-armor"
   echo "  4. 部署提示词 → $HOME_DIR/{prompt-inject.md,fujiang-kernel*.md}"
@@ -60,17 +64,44 @@ if [ "$MODE" = "dry" ]; then
 fi
 
 # ---------- 1. 社区版 ----------
-c "[1/6] 检查社区版"
-if [ ! -f "$COMM/lib/index.js" ]; then
-  if [ "$MODE" = "patch" ]; then
-    die "未安装社区版，无法打补丁。先执行: bash install-community.sh"
-  fi
-  warn "未安装社区版，跳过所有依赖它的功能"
-  warn "装法: bash install-community.sh（注意 npm 上没有这个包，dsh plugin add 会 404）"
-  HAS_COMM=0
-else
-  ok "社区版存在: $COMM"
+c "[1/6] 社区版"
+if [ -f "$COMM/lib/index.js" ]; then
+  V=$(python3 -c "import json;print(json.load(open('$COMM/package.json')).get('version','?'))" 2>/dev/null || echo "?")
+  ok "已安装，版本 $V"
   HAS_COMM=1
+else
+  case "$MODE" in
+    check)
+      warn "未安装社区版（--check 不修改任何文件）"
+      HAS_COMM=0
+      ;;
+    patch)
+      die "未安装社区版，无法打补丁。先执行: bash install-community.sh"
+      ;;
+    *)
+      # full / dry：自动按顺序装，不再跳过
+      if [ "$MODE" = "dry" ]; then
+        echo "  将自动安装社区版: bash install-community.sh"
+        HAS_COMM=1
+      else
+        warn "未安装社区版，自动安装（社区版不在 npm 上，走 GitHub Release tgz）"
+        if [ ! -f "$KIT/install-community.sh" ]; then
+          die "缺少 install-community.sh，无法自动安装"
+        fi
+        if ! bash "$KIT/install-community.sh" 2>&1 | sed 's/^/    /'; then
+          die "社区版安装失败。手动执行: bash install-community.sh
+     若网络不通，从 https://github.com/kingcharleslzy-ai/dsh-purge/releases
+     下载 dsh-purge-community-<版本>.tgz 后: bash install-community.sh --local /path/to.tgz"
+        fi
+        if [ -f "$COMM/lib/index.js" ]; then
+          ok "社区版安装成功"
+          HAS_COMM=1
+        else
+          die "社区版安装后仍找不到 $COMM/lib/index.js"
+        fi
+      fi
+      ;;
+  esac
 fi
 
 # ---------- 2. tgz 引用修正 ----------
