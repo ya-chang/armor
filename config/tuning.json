@@ -1,0 +1,8 @@
+{
+  "boost": true,
+  "injectPosition": "head",
+  "askNoBlock": true,
+  "rewind": true,
+  "refusalRetry": true,
+  "extraPatches": []
+}
