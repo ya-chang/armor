@@ -180,6 +180,24 @@ else
   warn "无社区版，跳过补丁"
 fi
 
+# ---------- 部署自愈模板源 ----------
+c "部署自愈模板源"
+SRC_DIR="$HOME_DIR/armor-kit-src"
+if [ "$MODE" = "check" ]; then
+  [ -d "$SRC_DIR" ] && ok "已存在: $SRC_DIR" || warn "缺失: $SRC_DIR"
+else
+  mkdir -p "$SRC_DIR/lib"
+  for f in ladder.js reinforce.js assemble.js; do
+    cp "$KIT/purge-opt/lib/$f" "$SRC_DIR/lib/$f"
+  done
+  ok "$SRC_DIR/lib/ 三个模块"
+  # 自愈脚本随富江插件走
+  if [ -f "$KIT/selfheal/selfheal.js" ] && [ -d "$HOME_DIR/plugins/fujiang-armor" ]; then
+    cp "$KIT/selfheal/selfheal.js" "$HOME_DIR/plugins/fujiang-armor/selfheal.js"
+    ok "富江插件内 selfheal.js"
+  fi
+fi
+
 # ---------- 验证 ----------
 echo
 c "验证"

@@ -29,6 +29,79 @@ bash install.sh
 
 ---
 
+## 自愈：开着自动更新也能扛
+
+如果你打开了社区版自动更新（`autoInstall: true`），更新时 `lib/` 会被**整树删除重建**：
+
+```js
+// lib/update-install.js:298
+if (name === "lib" || ...) {
+  await removeTreeNoFollow(to);   // 先删光
+}
+await fsp.cp(from, to, { recursive: true, force: true });  // 再拷新版
+```
+
+**3 个自建模块被删，9 处注入全部丢失。**这件事无人值守、每天都会发生。
+
+### 自愈怎么工作
+
+富江插件在 `~/.dsh/plugins/fujiang-armor/` 下，**社区版更新碰不到它**。它的 `apply()` 每次加载时先跑一次自愈：
+
+```js
+export function apply(ctx, config) {
+  selfHealSafe();   // 检查并补齐
+  ...
+}
+```
+
+自愈做两件事：
+
+1. 检查 `lib/{ladder,reinforce,assemble}.js` 是否存在 → 缺了从 `~/.dsh/armor-kit-src/lib/` 复制回来
+2. 检查 `lib/index.js` 和 `lib/refusal-retry.js` 里的 9 个标记 → 缺了就就地注入
+
+**模板源**：`~/.dsh/armor-kit-src/lib/`，安装脚本会自动部署。
+
+### 实测
+
+模拟一次完整自动更新：
+
+```
+更新后:  ladder.js 没了
+更新后:  注入标记 0
+触发自愈: ok: true
+恢复模块: ladder.js, reinforce.js, assemble.js
+修复文件: index.js, refusal-retry.js
+```
+
+再跑一次确认幂等：
+
+```
+模块: ladder.js:ok, reinforce.js:ok, assemble.js:ok
+注入: index.js:up-to-date, refusal-retry.js:up-to-date
+```
+
+### 局限（必须知道）
+
+**自愈在插件加载时运行，补好的文件要宿主下次启动才生效。**
+
+也就是说：
+
+```
+自动更新 → 补丁丢失 → 你重启 DSH → 自愈修复
+                              ↑
+                        但这次启动用的还是坏状态
+```
+
+**再重启一次才完全恢复。**或者你也可以在重启前手动跑 `bash install.sh --patch-only`，这一次就到位。
+
+审计日志会记录自愈动作：
+
+```bash
+grep selfheal ~/.dsh/armor-audit.jsonl
+```
+
+---
+
 ## 为什么需要 --patch-only
 
 社区版 `pnpm install` 或升级会**重建 `node_modules`**，把补丁冲掉：

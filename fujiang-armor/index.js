@@ -1,4 +1,5 @@
 import { readFileSync, existsSync } from "node:fs";
+import { selfHealSafe } from "./selfheal.js";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -189,6 +190,13 @@ export const name = "fujiang-armor";
 export const inject = ["tools", "systemPrompt"];
 
 export function apply(ctx, config = { autoApplyOnStart: true }) {
+  // 自愈：社区版自动更新会删掉 lib/ 下我们的模块和注入，这里先查一遍补齐。
+  // 补好的文件要宿主下次启动才生效，但不需要人守在这台机器上。
+  try {
+    const r = selfHealSafe();
+    if (r && r.ok === false) console.warn("[fujiang-armor] 自愈未完全成功:", JSON.stringify(r.errors || []));
+  } catch { /* 自愈失败不影响插件本体 */ }
+
   // 宿主文件兼容补丁由安装器执行，避免启动时写配置触发宿主反复重载。
   const dual = config.dualLayer !== false && DUAL_LAYER_INJECTION;
 
