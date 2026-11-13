@@ -119,7 +119,8 @@ armor-kit/
 │   └── AGENTS.md.example           AGENTS.md 示例
 ├── config/
 │   └── tuning.json             refusalRetry=true
-└── 盔甲测验.md                   盔甲能力测试文档（A–G 系列题单）
+├── 盔甲测验.md                   盔甲能力测试文档（A–G 系列题单）
+└── 铁盔甲.md                     纯题目集（仅题目，供 AI 直接作答）
 ```
 
 ---
