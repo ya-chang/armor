@@ -1,10 +1,10 @@
-# armor-kit · 盔甲套件
+# armor · 盔甲套件
 
 > 社区版宿主补丁 + 富江身份内核 + 自愈模板源 + 提示词载体，一层装齐。
 
 ## 一句话总结
 
-`armor-kit` 是 DSH（DeepSeek Harness）的提示词注入型盔甲插件套件。它通过给社区版 `dsh-purge-community` 打 9 处幂等补丁，部署富江身份内核（order 100/200 双段注入）、自愈模板源与提示词载体，实现“被拒不复读、文体不偏移、阶梯可升降”的盔甲能力。
+`armor` 是 DSH（DeepSeek Harness）的提示词注入型套件。它通过给社区版 `dsh-purge-community` 打 9 处幂等补丁，部署富江身份内核（order 100/200 双段注入）、自愈模板源与提示词载体，保障会话输出的稳定性与一致性：拒绝不复发、文体不偏移、交付形态可分级调控。
 
 ---
 
@@ -28,7 +28,7 @@
 ### 方法一：一条命令（推荐）
 
 ```bash
-cd ~/armor-kit && bash install.sh
+cd ~/armor && bash install.sh
 ```
 
 5 步一次跑完：社区版检查 → 依赖引用修正 → 富江插件 → 提示词载体 → 补丁注入。
@@ -52,12 +52,12 @@ PY
 pnpm install
 
 # ② 富江插件
-git clone https://github.com/ya-chang/armor-kit.git ~/armor-kit
+git clone https://github.com/ya-chang/armor.git ~/armor
 mkdir -p ~/.dsh/plugins/fujiang-armor
-cp -a ~/armor-kit/fujiang-armor/. ~/.dsh/plugins/fujiang-armor/
+cp -a ~/armor/fujiang-armor/. ~/.dsh/plugins/fujiang-armor/
 
 # ③ 补丁层（自动带上第 4 层模板源 + 第 5 层载体 + 9 处注入）
-cd ~/armor-kit && bash patch/install.sh
+cd ~/armor && bash patch/install.sh
 
 # 完全退出 DSH 再打开（不是杀进程）
 ```
@@ -87,7 +87,7 @@ DSH_HOME=~/.dsh node purge-opt/test/verify-full.mjs | tail -3
 ## 目录结构
 
 ```
-armor-kit/
+armor/
 ├── install.sh                  一键安装 / 修复 / 检查
 ├── install-community.sh        社区版离线/在线安装脚本
 ├── patch/
@@ -179,7 +179,7 @@ armor-kit/
 
 ## 仓库无责申明
 
-**本仓库（armor-kit）及其所有代码、脚本、文档、配置文件，仅作为本地安全研究、CTF 靶场练习、授权红队演练及个人学习目的的技术素材。**
+**本仓库（armor）及其所有代码、脚本、文档、配置文件，仅作为本地安全研究、CTF 靶场练习、授权红队演练及个人学习目的的技术素材。**
 
 仓库维护者不对以下情况负责：
 - 任何使用本仓库内容对未经授权目标进行的渗透、攻击、入侵、破解、欺诈、伪造或其他违法行为；

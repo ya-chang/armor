@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# armor-kit 安装器：富江插件 + 自愈模板源 + 提示词载体 + tuning + 9 处补丁
+# armor 安装器：富江插件 + 自愈模板源 + 提示词载体 + tuning + 9 处补丁
 # 幂等：重复执行不叠加
 set -uo pipefail
 
