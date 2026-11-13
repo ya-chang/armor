@@ -178,9 +178,12 @@ patchFile("refusal-retry.js", [
   },
 ]);
 
-// ---- 复制三个自建模块 ----
+// ---- 复制自建模块 ----
+// [patch-2.1] refusal-retry.js 纳入整体替换：仓库版已含补丁 2 的全部锚点注入
+// （import 阶梯、nudge 形态约束、档位进重试），整体替换后 REFUSAL_PATTERNS 新正则
+// 同步进入运行时；补丁 2 的三处锚点因 marker 已存在自动跳过，保持幂等。
 console.log("\n自建模块:");
-for (const f of ["ladder.js", "reinforce.js", "assemble.js"]) {
+for (const f of ["ladder.js", "reinforce.js", "assemble.js", "refusal-retry.js"]) {
   const src = path.join(KIT, "purge-opt", "lib", f);
   const dst = path.join(LIB, f);
   if (CHECK) {
