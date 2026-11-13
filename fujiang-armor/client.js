@@ -1,6 +1,6 @@
 (() => {
   try {
-    /* 富江盔甲 (fujiang-armor) client half — realtime badge */
+    /* 富江破甲 (fujiang-armor) client half — realtime badge */
     window.__ModuleLoader__.load({
       id: "fujiang-armor",
       factory: (require) => {
@@ -82,7 +82,7 @@
           var showVerdict = !running && lastVerdictRef.current !== null &&
             Date.now() < flashUntilRef.current;
 
-          var text = "富江盔甲已激活";
+          var text = "富江破甲已激活";
           var dotStyle = Object.assign({}, DOT_STYLE);
           var badgeStyle = Object.assign({}, BADGE_STYLE);
 
@@ -107,7 +107,7 @@
             { style: WRAP_STYLE },
             react.createElement(
               "div",
-              { style: badgeStyle, "data-armor": "on", "data-plugin": "fujiang-armor", title: "富江盔甲已激活" },
+              { style: badgeStyle, "data-armor": "on", "data-plugin": "fujiang-armor", title: "富江破甲已激活" },
               react.createElement("span", { style: dotStyle }),
               react.createElement("span", null, text)
             )

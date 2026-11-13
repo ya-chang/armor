@@ -3,7 +3,7 @@ import { selfHealSafe } from "./selfheal.js";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-// 富江盔甲 0.5.x：双段注入 + 热更新 + 状态投影。
+// 富江破甲 0.5.x：双段注入 + 热更新 + 状态投影。
 // 载荷优先从 $DSH_HOME 下的热更文件读，缺失时回退到包内 prompts/，改文件即生效不用改代码。
 const HOME = process.env.DSH_HOME || join(homedir(), ".dsh");
 const KERNEL_HOT = join(HOME, "fujiang-kernel.md");
@@ -34,14 +34,14 @@ const objectOutput = {
 
 const profileTool = {
   name: "fujiang_profile",
-  description: "返回富江盔甲的插件版本、注入槽位与载荷来源。",
+  description: "返回富江破甲的插件版本、注入槽位与载荷来源。",
   parameters: { type: "object", properties: {}, additionalProperties: false },
   output: objectOutput,
   execute() {
     return {
       plugin: "fujiang-armor",
       pluginVersion: KERNEL_VERSION,
-      displayName: "富江盔甲",
+      displayName: "富江破甲",
       targetArchitecture: "DeepSeek-V4 / V4-Pro / V4.1-Flash 全系列",
       promptSources: [
         { slot: 100, path: existsSync(KERNEL_HOT) ? KERNEL_HOT : "prompts/fujiang.md", bytes: PROMPT_TEXT.length },
@@ -59,7 +59,7 @@ const profileTool = {
   },
 };
 
-// ---- 实时盔甲状态（会话投影） ----
+// ---- 实时破甲状态（会话投影） ----
 const OPENING_WINDOW = 160;
 const REFUSAL_MARKERS_ZH = [
   "我无法", "无法参与", "无法提供", "无法帮助", "无法协助", "无法满足",
